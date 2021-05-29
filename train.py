@@ -6,6 +6,7 @@ from wandb.keras import WandbCallback
 from tensorflow.keras.datasets import fashion_mnist
 from wandb.util import generate_id
 
+import utils
 from discriminator import create_discriminator
 from generator import create_generator
 
@@ -26,4 +27,9 @@ def train():
     discriminator = create_discriminator(config)
     generator = create_generator(config)
 
-    
+    joint_model = utils.create_joint_model(generator, discriminator)
+
+    for i in range(config.adversarial_epochs):
+        utils.train_discriminator(generator, discriminator, x_train, x_test, i)
+        utils.train_generator(generator, discriminator, joint_model)
+        utils.sample_images(generator)
