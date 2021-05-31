@@ -28,8 +28,12 @@ def train():
     generator = create_generator(config)
 
     joint_model = utils.create_joint_model(generator, discriminator)
+    print(joint_model.summary)
 
     for i in range(config.adversarial_epochs):
-        utils.train_discriminator(generator, discriminator, x_train, x_test, i)
-        utils.train_generator(generator, discriminator, joint_model)
-        utils.sample_images(generator)
+        print('=====================================================================')
+        print('Adversarian Epoch: {}/{}'.format(i+1, config.adversarial_epochs))
+        print('=====================================================================')
+        utils.train_discriminator(generator, discriminator, x_train, x_test, config)
+        utils.train_generator(generator, discriminator, joint_model, config)
+        utils.sample_images(generator, config)

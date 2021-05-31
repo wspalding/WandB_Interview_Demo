@@ -24,8 +24,8 @@ def create_joint_model(generator, discriminator):
 
 def train_discriminator(generator, discriminator, x_train, x_test, config):
 
-    train, train_labels = mix_data(x_train, generator, config.discriminator_examples)
-    test, test_labels = mix_data(x_test, generator, config.discriminator_examples)
+    train, train_labels = mix_data(x_train, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
+    test, test_labels = mix_data(x_test, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
 
     discriminator.trainable = True
     discriminator.summary()
@@ -43,7 +43,7 @@ def train_discriminator(generator, discriminator, x_train, x_test, config):
 def train_generator(generator, discriminator, joint_model, config):
     num_examples = config.generator_examples
 
-    train = generator_inputs(num_examples)
+    train = generator_inputs(num_examples, config)
     labels = to_categorical(np.ones(num_examples))
 
     add_noise(labels)
@@ -61,8 +61,8 @@ def train_generator(generator, discriminator, joint_model, config):
     generator.save(os.path.join(wandb.run.dir, "generator.h5"))
 
 
-def sample_images(generator):
-    noise = generator_inputs(10)
+def sample_images(generator, config):
+    noise = generator_inputs(10, config)
     gen_imgs = generator.predict(noise)
     wandb.log({'examples': [wandb.Image(np.squeeze(i)) for i in gen_imgs]})
 
@@ -84,13 +84,13 @@ def add_noise(labels):
             label[0] = label[1]
             label[1] = tmp
 
-def mix_data(data, generator, config, length=1000):
+def mix_data(data, generator, length=1000, seed_dim=10):
     num_examples=int(length/2)
 
     data= data[:num_examples, :, :]
 
 
-    seeds = np.random.normal(0, 1, (num_examples, config.generator_seed_dim))
+    seeds = np.random.normal(0, 1, (num_examples, seed_dim))
 
     fake_train = generator.predict(seeds)[:,:,:,0]
 
