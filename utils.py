@@ -3,6 +3,7 @@ import os
 import wandb
 from wandb.keras import WandbCallback
 
+import tensorflow as tf
 from tensorflow.keras.callbacks import LambdaCallback
 from tensorflow.keras.utils import to_categorical
 
@@ -28,7 +29,7 @@ def train_discriminator(generator, discriminator, x_train, x_test, config):
     test, test_labels = mix_data(x_test, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
 
     discriminator.trainable = True
-    discriminator.summary()
+    # discriminator.summary()
 
     wandb_logging_callback = LambdaCallback(on_epoch_end=log_functions.log_discriminator)
 
@@ -52,7 +53,7 @@ def train_generator(generator, discriminator, joint_model, config):
 
     discriminator.trainable = False
 
-    joint_model.summary()
+    # joint_model.summary()
 
     joint_model.fit(train, labels, epochs=config.generator_epochs,
             batch_size=config.batch_size,
@@ -60,11 +61,6 @@ def train_generator(generator, discriminator, joint_model, config):
 
     generator.save(os.path.join(wandb.run.dir, "generator.h5"))
 
-
-def sample_images(generator, config):
-    noise = generator_inputs(10, config)
-    gen_imgs = generator.predict(noise)
-    wandb.log({'examples': [wandb.Image(np.squeeze(i)) for i in gen_imgs]})
 
 
 def generator_inputs(num_examples, config):
@@ -111,3 +107,22 @@ def mix_data(data, generator, length=1000, seed_dim=10):
     add_noise(labels)
 
     return (combined, labels)
+
+# @tf.function
+# def train_step(images):
+#     noise = tf.random.normal([BATCH_SIZE, noise_dim])
+
+#     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+#       generated_images = generator(noise, training=True)
+
+#       real_output = discriminator(images, training=True)
+#       fake_output = discriminator(generated_images, training=True)
+
+#       gen_loss = generator_loss(fake_output)
+#       disc_loss = discriminator_loss(real_output, fake_output)
+
+#     gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+#     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+
+#     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+#     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))

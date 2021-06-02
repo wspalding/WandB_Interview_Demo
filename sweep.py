@@ -12,50 +12,40 @@ sweep_config = {
                 'value': (28, 28, 1)
             },
             'generator_seed_dim': {
-                'value': 10
+                'distribution': 'int_uniform',
+                'min': 5,
+                'max': 20
             },
             'adversarial_epochs': {
-                'value': 1000
+                'distribution': 'int_uniform',
+                'min': 25,
+                'max': 100
             },
             'discriminator_examples': {
-                'value': 10000
+                'value': 60000
             },
             'generator_examples': {
-                'value': 10000
+                'value': 60000
             },
             'generator_epochs': {
-                'value': 12
+                'value': 1
             },
             'discriminator_epochs': {
                 'value': 1
             },
             'batch_size': {
-                'value': 100
+                'values': [64, 128, 256]
+            },
+            'generator_learning_rate': {
+                'distribution': 'log_uniform',
+                'min': -10,
+                'max': -7
+            },
+            'discriminator_learning_rate': {
+                'distribution': 'log_uniform',
+                'min': -10,
+                'max': -7
             }
-    #     'learning_rate': {
-    #         # 'values': [0.01]
-    #         'min': 0.001,
-    #         'max': 0.1
-    #     },
-    #     'epochs': {
-    #         'values': [5000]
-    #     },
-    #     'batch_size': {
-    #         'values': [64, 128]
-    #     },
-    #     'training_epochs': {
-    #         'values': [1]
-    #     },
-    #     'loss_function': {
-    #         'values': ['mse', 'huber']
-    #     },
-    #     'optimizer': {
-    #         'values': ['adam', 'sgd']
-    #     },
-    #     'frame_skipping': {
-    #         # 'values': [1, 4, 10]
-    #         'values': [1]
-    #     },
     },
     'early_terminate': {
         'type': 'hyperband',

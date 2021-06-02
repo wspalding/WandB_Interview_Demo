@@ -7,6 +7,7 @@ from tensorflow.keras.datasets import fashion_mnist
 from wandb.util import generate_id
 
 import utils
+import log_functions
 from discriminator import create_discriminator
 from generator import create_generator
 
@@ -20,15 +21,23 @@ x_test = x_test.astype('float32')
 
 print(x_train.shape, y_train.shape)
 
+
+
 def train():
     wandb.init()
     config = wandb.config
+
+    sample_noise = utils.generator_inputs(10, config)
+    samples = [[] for _ in range(10)]
 
     discriminator = create_discriminator(config)
     generator = create_generator(config)
 
     joint_model = utils.create_joint_model(generator, discriminator)
-    print(joint_model.summary)
+    
+    generator.summary()
+    discriminator.summary()
+    joint_model.summary()
 
     for i in range(config.adversarial_epochs):
         print('=====================================================================')
@@ -36,4 +45,4 @@ def train():
         print('=====================================================================')
         utils.train_discriminator(generator, discriminator, x_train, x_test, config)
         utils.train_generator(generator, discriminator, joint_model, config)
-        utils.sample_images(generator, config)
+        log_functions.sample_images(generator, sample_noise, samples)
