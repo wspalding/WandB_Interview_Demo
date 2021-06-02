@@ -13,7 +13,7 @@ sweep_config = {
             },
             'generator_seed_dim': {
                 'distribution': 'int_uniform',
-                'min': 5,
+                'min': 10,
                 'max': 20
             },
             'adversarial_epochs': {
@@ -34,17 +34,17 @@ sweep_config = {
                 'value': 1
             },
             'batch_size': {
-                'values': [64, 128, 256]
+                'values': [32, 64, 128]
             },
             'generator_learning_rate': {
                 'distribution': 'log_uniform',
                 'min': -10,
-                'max': -7
+                'max': -9
             },
             'discriminator_learning_rate': {
                 'distribution': 'log_uniform',
                 'min': -10,
-                'max': -7
+                'max': -9
             }
     },
     'early_terminate': {
