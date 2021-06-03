@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from numpy import random
 import wandb
 from wandb.keras import WandbCallback
 
@@ -8,14 +9,20 @@ from tensorflow.keras.callbacks import LambdaCallback
 from tensorflow.keras.utils import to_categorical
 
 import log_functions
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, Model
 
 def create_joint_model(generator, discriminator):
-    joint_model = Sequential()
-    joint_model.add(generator)
-    joint_model.add(discriminator)
+    # joint_model = Sequential()
+    # joint_model.add(generator)
+    # joint_model.add(discriminator)
 
     discriminator.trainable = False
+
+    noise_input, embedding_input = generator.input
+    image_output = generator.output
+    joint_model_output = discriminator([image_output, embedding_input])
+
+    joint_model = Model([noise_input, embedding_input], joint_model_output, name="joint_model")
 
     joint_model.compile(optimizer='adam', loss='categorical_crossentropy',
         metrics=['acc'])
@@ -23,10 +30,10 @@ def create_joint_model(generator, discriminator):
     return joint_model
 
 
-def train_discriminator(generator, discriminator, x_train, x_test, config):
+def train_discriminator(generator, discriminator, x_train, y_train, x_test, y_test, config):
 
-    train, train_labels = mix_data(x_train, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
-    test, test_labels = mix_data(x_test, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
+    train, train_labels = mix_data(x_train, y_train, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
+    test, test_labels = mix_data(x_test, y_test, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
 
     discriminator.trainable = True
     # discriminator.summary()
@@ -64,7 +71,7 @@ def train_generator(generator, discriminator, joint_model, config):
 
 
 def generator_inputs(num_examples, config):
-    return np.random.normal(0, 1, (num_examples, config.generator_seed_dim))
+    return [np.random.normal(0, 1, (num_examples, config.generator_seed_dim)), np.random.randint(0, 10, size=(num_examples, 1))]
 
 def add_noise(labels):
     for label in labels:
@@ -80,33 +87,37 @@ def add_noise(labels):
             label[0] = label[1]
             label[1] = tmp
 
-def mix_data(data, generator, length=1000, seed_dim=10):
+def mix_data(x, y, generator, length=1000, seed_dim=10):
     num_examples=int(length/2)
 
-    data= data[:num_examples, :, :]
-
+    x = x[:num_examples, :, :]
+    y = y[:num_examples]
 
     seeds = np.random.normal(0, 1, (num_examples, seed_dim))
+    fake_y = np.random.randint(0, 10, size=(num_examples,))
 
-    fake_train = generator.predict(seeds)[:,:,:,0]
+    fake_train = generator.predict([seeds, fake_y])[:,:,:,0]
 
-    combined  = np.concatenate([ data, fake_train ])
+    combined_images  = np.concatenate([x, fake_train])
+    combined_y = np.concatenate([y, fake_y])
 
     # combine them together
-    labels = np.zeros(combined.shape[0])
-    labels[:data.shape[0]] = 1
+    labels = np.zeros(combined_images.shape[0])
+    labels[:x.shape[0]] = 1
 
-    indices = np.arange(combined.shape[0])
+    indices = np.arange(combined_images.shape[0])
     np.random.shuffle(indices)
-    combined = combined[indices]
+    combined_images = combined_images[indices]
+    combined_y = combined_y[indices]
     labels = labels[indices]
-    combined.shape += (1,)
+
+    combined_images.shape += (1,)
 
     labels = to_categorical(labels)
 
     add_noise(labels)
 
-    return (combined, labels)
+    return ((combined_images, combined_y), labels)
 
 # @tf.function
 # def train_step(images):

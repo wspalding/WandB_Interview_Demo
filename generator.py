@@ -1,16 +1,14 @@
-import imp
 
 import tensorflow as tf
 from tensorflow.keras import models
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Dense, Flatten, \
     Conv2DTranspose, Reshape, AveragePooling2D, UpSampling2D, LeakyReLU, \
-         BatchNormalization, Embedding, Concatenate, Input
+         BatchNormalization, Embedding, Concatenate, Input, Reshape
 from tensorflow.keras import initializers
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import optimizers
-from tensorflow.python.ops.gen_math_ops import Mod
 
 
 def create_generator(config):
@@ -51,9 +49,12 @@ def create_generator(config):
     # model.add(Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
     # assert model.output_shape == (None, 28, 28, 1)
 
-    noise_input = Input(shape=(random_dim,))
-    embedding_input = Embedding(10, 256)
-    concat = Concatenate([noise_input, embedding_input])
+    noise_input = Input(shape=(random_dim,), name='noise input')
+
+    embedding_input = Input(shape=(1,), name='type input')
+    embedding = Embedding(10, random_dim)(embedding_input)
+    embedding = Reshape((random_dim,))(embedding)
+    concat = Concatenate()([noise_input, embedding])
     l1 = Dense(7*7*256, use_bias=False, input_shape=(random_dim,))(concat)
     l1 = BatchNormalization()(l1)
     l1 = LeakyReLU()(l1)
@@ -68,9 +69,9 @@ def create_generator(config):
     c2 = BatchNormalization()(c2)
     c2 = LeakyReLU()(c2)
 
-    c3 = Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh')
+    c3 = Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh', name="generator_output")(c2)
 
-    model = Model(inputs=[noise_input, embedding_input], ouputs=c3)
+    model = Model([noise_input, embedding_input], c3, name='generator')
 
     generator_optimizer = Adam(config.generator_learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=generator_optimizer)

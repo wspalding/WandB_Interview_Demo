@@ -1,5 +1,8 @@
+from numpy.lib.npyio import save
+from tensorflow.keras import models
 import wandb
 import numpy as np
+from tensorflow.keras.utils import plot_model
 
 def log_generator(epoch, logs):
     wandb.log({'generator_loss': logs['loss'],
@@ -23,3 +26,9 @@ def sample_images(generator, noise, samples):
         'progession': [wandb.Video(np.array(s)) for s in samples]
         })
 
+def log_model_images(model):
+    save_file = "{}.png".format(model.name)
+    plot_model(model, to_file=save_file)
+    wandb.log({
+        '{} architecture'.format(model.name): wandb.Image(save_file)
+    })

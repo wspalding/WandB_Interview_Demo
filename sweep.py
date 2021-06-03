@@ -14,11 +14,11 @@ sweep_config = {
             'generator_seed_dim': {
                 'distribution': 'int_uniform',
                 'min': 10,
-                'max': 20
+                'max': 50
             },
             'adversarial_epochs': {
                 'distribution': 'int_uniform',
-                'min': 25,
+                'min': 50,
                 'max': 100
             },
             'discriminator_examples': {
