@@ -45,7 +45,16 @@ sweep_config = {
                 'distribution': 'log_uniform',
                 'min': -10,
                 'max': -9
-            }
+            },
+            'generator_learning_rate_decay': {
+                'min': 0.9,
+                'max': 1
+            },
+            'discriminator_learning_rate_decay': {
+                'value': 0.9
+                # 'min': 0.9,
+                # 'max': 1
+            },
     },
     'early_terminate': {
         'type': 'hyperband',

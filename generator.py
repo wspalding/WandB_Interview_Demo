@@ -73,7 +73,7 @@ def create_generator(config):
 
     model = Model([noise_input, embedding_input], c3, name='generator')
 
-    generator_optimizer = Adam(config.generator_learning_rate)
+    generator_optimizer = Adam(config.generator_learning_rate, beta_1=config.generator_learning_rate_decay)
     model.compile(loss='categorical_crossentropy', optimizer=generator_optimizer)
 
     return model

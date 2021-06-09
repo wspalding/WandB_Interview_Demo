@@ -30,15 +30,15 @@ def create_joint_model(generator, discriminator):
     return joint_model
 
 
-def train_discriminator(generator, discriminator, x_train, y_train, x_test, y_test, config):
+def train_discriminator(generator, discriminator, x_train, y_train, x_test, y_test, config, logger):
 
     train, train_labels = mix_data(x_train, y_train, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
-    test, test_labels = mix_data(x_test, y_test, generator, length=config.discriminator_examples, seed_dim=config.generator_seed_dim)
+    test, test_labels = mix_data(x_test, y_test, generator, length=x_test.shape[0], seed_dim=config.generator_seed_dim)
 
     discriminator.trainable = True
     # discriminator.summary()
 
-    wandb_logging_callback = LambdaCallback(on_epoch_end=log_functions.log_discriminator)
+    wandb_logging_callback = LambdaCallback(on_epoch_end=logger.log_discriminator)
 
     history = discriminator.fit(train, train_labels,
         epochs=config.discriminator_epochs,
@@ -48,7 +48,7 @@ def train_discriminator(generator, discriminator, x_train, y_train, x_test, y_te
     discriminator.save(os.path.join(wandb.run.dir, "discriminator.h5"))
 
 
-def train_generator(generator, discriminator, joint_model, config):
+def train_generator(generator, discriminator, joint_model, config, logger):
     num_examples = config.generator_examples
 
     train = generator_inputs(num_examples, config)
@@ -56,7 +56,7 @@ def train_generator(generator, discriminator, joint_model, config):
 
     add_noise(labels)
 
-    wandb_logging_callback = LambdaCallback(on_epoch_end=log_functions.log_generator)
+    wandb_logging_callback = LambdaCallback(on_epoch_end=logger.log_generator)
 
     discriminator.trainable = False
 
@@ -70,8 +70,10 @@ def train_generator(generator, discriminator, joint_model, config):
 
 
 
-def generator_inputs(num_examples, config):
-    return [np.random.normal(0, 1, (num_examples, config.generator_seed_dim)), np.random.randint(0, 10, size=(num_examples, 1))]
+def generator_inputs(num_examples, config, **kwargs):
+    types = kwargs.get('types', np.random.randint(0, 10, size=(num_examples, 1)))
+    assert(len(types) == num_examples)
+    return [np.random.normal(0, 1, (num_examples, config.generator_seed_dim)), types]
 
 def add_noise(labels):
     for label in labels:
@@ -90,8 +92,9 @@ def add_noise(labels):
 def mix_data(x, y, generator, length=1000, seed_dim=10):
     num_examples=int(length/2)
 
-    x = x[:num_examples, :, :]
-    y = y[:num_examples]
+    offset = np.random.randint(0,x.shape[0]-num_examples)
+    x = x[offset:num_examples+offset, :, :]
+    y = y[offset:num_examples+offset]
 
     seeds = np.random.normal(0, 1, (num_examples, seed_dim))
     fake_y = np.random.randint(0, 10, size=(num_examples,))
