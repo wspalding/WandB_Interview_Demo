@@ -24,8 +24,8 @@ def create_joint_model(generator, discriminator):
 
     joint_model = Model([noise_input, embedding_input], joint_model_output, name="joint_model")
 
-    joint_model.compile(optimizer='adam', loss='categorical_crossentropy',
-        metrics=['acc'])
+    # joint_model.compile(optimizer='adam', loss='categorical_crossentropy',
+    #     metrics=['acc'])
 
     return joint_model
 
