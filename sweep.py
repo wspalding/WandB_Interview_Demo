@@ -1,25 +1,37 @@
 import wandb
-from train import train
+from train_tf import train
 
 sweep_config = {
-    'method': 'random', #grid, random, bayes
+    'method': 'grid', #grid, random, bayes
     'metric': {
-      'name': 'generator_acc',
-      'goal': 'maximize'   
+      'name': 'gen_loss',
+      'goal': 'minimize'   
     },
     'parameters': {
             'image_shape': {
                 'value': (28, 28, 1)
             },
+            'num_examples': {
+                'value': 60000
+            },
+            'num_samples': {
+                'value': 20
+            },
+            'training_loop': {
+                # 'value': 'simultaneous'
+                'values': ['simultaneous', 'batch_split', 'full_split']
+            },
             'generator_seed_dim': {
-                'distribution': 'int_uniform',
-                'min': 10,
-                'max': 50
+                'value': 50
+                # 'distribution': 'int_uniform',
+                # 'min': 10,
+                # 'max': 50
             },
             'adversarial_epochs': {
-                'distribution': 'int_uniform',
-                'min': 50,
-                'max': 100
+                'value': 50
+                # 'distribution': 'int_uniform',
+                # 'min': 50,
+                # 'max': 100
             },
             'discriminator_examples': {
                 'value': 60000
@@ -34,21 +46,25 @@ sweep_config = {
                 'value': 1
             },
             'batch_size': {
-                'values': [32, 64, 128]
+                'value': 128
+                # 'values': [32, 64, 128]
             },
             'generator_learning_rate': {
-                'distribution': 'log_uniform',
-                'min': -10,
-                'max': -9
+                'value': 1e-4
+                # 'distribution': 'log_uniform',
+                # 'min': -10,
+                # 'max': -9
             },
             'discriminator_learning_rate': {
-                'distribution': 'log_uniform',
-                'min': -10,
-                'max': -9
+                'value': 1e-4
+                # 'distribution': 'log_uniform',
+                # 'min': -10,
+                # 'max': -9
             },
             'generator_learning_rate_decay': {
-                'min': 0.9,
-                'max': 1
+                'value': 0.9
+                # 'min': 0.9,
+                # 'max': 1
             },
             'discriminator_learning_rate_decay': {
                 'value': 0.9

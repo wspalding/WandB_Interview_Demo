@@ -15,22 +15,14 @@ class WandbLogger():
     def log_generator(self, epoch, logs):
         for key, value in logs.items():
             self.logs['generator_{}'.format(key)] = value
-        # self.logs['generator_loss'] = logs['loss']
-        # self.logs['generator_acc'] = logs['acc']
-        # self.logs['generator_TP'] = logs['TP']
-        # self.logs['generator_TN'] = logs['TN']
-        # self.logs['generator_FP'] = logs['FP']
-        # self.logs['generator_FN'] = logs['FN']
 
     def log_discriminator(self, epoch, logs):
         for key, value in logs.items():
             self.logs['discriminator_{}'.format(key)] = value
-        # self.logs['discriminator_loss'] = logs['loss']
-        # self.logs['discriminator_acc'] = logs['acc']
-        # self.logs['discrininator_TP'] = logs['TP']
-        # self.logs['discrininator_TN'] = logs['TN']
-        # self.logs['discrininator_FP'] = logs['FP']
-        # self.logs['discrininator_FN'] = logs['FN']
+
+    def log_metrics(self, logs):
+        for key, value in logs.items():
+            self.logs[key] = value
 
     def sample_images(self, generator, noise, samples):
         gen_imgs = generator.predict(noise)
@@ -43,3 +35,9 @@ class WandbLogger():
         save_file = "{}.png".format(model.name)
         plot_model(model, to_file=save_file)
         self.logs['{} architecture'.format(model.name)] = wandb.Image(save_file)
+
+    def log_disc_gradients(self, disc_grad):
+        self.logs['disc_gradients'] = wandb.Histogram(np.array(disc_grad, dtype=float))
+
+    def log_gen_gradients(self, gen_grad):
+        pass

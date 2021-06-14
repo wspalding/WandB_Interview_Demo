@@ -6,6 +6,7 @@ from wandb.keras import WandbCallback
 from tensorflow.keras.datasets import fashion_mnist, mnist
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy, BinaryCrossentropy
+from tensorflow.keras.metrics import TruePositives, TrueNegatives, FalsePositives, FalseNegatives
 
 import utils
 import log_functions
@@ -36,15 +37,15 @@ def train(config=None):
 
     discriminator = create_discriminator(config)
     discriminator_optimizer = Adam(config.discriminator_learning_rate, beta_1=config.discriminator_learning_rate_decay)
-    discriminator.compile(optimizer=discriminator_optimizer, loss='categorical_crossentropy',
+    discriminator.compile(optimizer=discriminator_optimizer, loss=BinaryCrossentropy(),
         metrics=['acc'])
 
     generator = create_generator(config)
     generator_optimizer = Adam(config.generator_learning_rate, beta_1=config.generator_learning_rate_decay)
-    generator.compile(loss='categorical_crossentropy', optimizer=generator_optimizer)
+    generator.compile(loss=BinaryCrossentropy(), optimizer=generator_optimizer)
 
     joint_model = utils.create_joint_model(generator, discriminator)
-    joint_model.compile(optimizer='adam', loss='categorical_crossentropy',
+    joint_model.compile(optimizer='adam', loss=BinaryCrossentropy(),
         metrics=['acc'])
 
     

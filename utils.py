@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from numpy import random
+from tensorflow.python.keras.losses import BinaryCrossentropy
 import wandb
 from wandb.keras import WandbCallback
 
@@ -23,9 +24,6 @@ def create_joint_model(generator, discriminator):
     joint_model_output = discriminator([image_output, embedding_input])
 
     joint_model = Model([noise_input, embedding_input], joint_model_output, name="joint_model")
-
-    # joint_model.compile(optimizer='adam', loss='categorical_crossentropy',
-    #     metrics=['acc'])
 
     return joint_model
 
@@ -52,9 +50,10 @@ def train_generator(generator, discriminator, joint_model, config, logger):
     num_examples = config.generator_examples
 
     train = generator_inputs(num_examples, config)
-    labels = to_categorical(np.ones(num_examples))
+    # labels = to_categorical(np.ones(num_examples))
+    labels = np.ones(num_examples)
 
-    add_noise(labels)
+    # add_noise(labels)
 
     wandb_logging_callback = LambdaCallback(on_epoch_end=logger.log_generator)
 
@@ -75,19 +74,19 @@ def generator_inputs(num_examples, config, **kwargs):
     assert(len(types) == num_examples)
     return [np.random.normal(0, 1, (num_examples, config.generator_seed_dim)), types]
 
-def add_noise(labels):
-    for label in labels:
-        noise = np.random.uniform(0.0,0.3)
-        if label[0] == 0.0:
-            label[0]+= noise
-            label[1]-=noise
-        else:
-            label[0]-=noise
-            label[1]+=noise
-        if np.random.uniform(0,1) > 0.05:
-            tmp = label[0]
-            label[0] = label[1]
-            label[1] = tmp
+# def add_noise(labels):
+#     for label in labels:
+#         noise = np.random.uniform(0.0,0.3)
+#         if label[0] == 0.0:
+#             label[0]+= noise
+#             label[1]-=noise
+#         else:
+#             label[0]-=noise
+#             label[1]+=noise
+#         if np.random.uniform(0,1) > 0.05:
+#             tmp = label[0]
+#             label[0] = label[1]
+#             label[1] = tmp
 
 def mix_data(x, y, generator, length=1000, seed_dim=10):
     num_examples=int(length/2)
@@ -116,27 +115,9 @@ def mix_data(x, y, generator, length=1000, seed_dim=10):
 
     combined_images.shape += (1,)
 
-    labels = to_categorical(labels)
+    # labels = to_categorical(labels)
 
-    add_noise(labels)
+    # add_noise(labels)
 
     return ((combined_images, combined_y), labels)
 
-# @tf.function
-# def train_step(images):
-#     noise = tf.random.normal([BATCH_SIZE, noise_dim])
-
-#     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-#       generated_images = generator(noise, training=True)
-
-#       real_output = discriminator(images, training=True)
-#       fake_output = discriminator(generated_images, training=True)
-
-#       gen_loss = generator_loss(fake_output)
-#       disc_loss = discriminator_loss(real_output, fake_output)
-
-#     gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
-#     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
-
-#     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
-#     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
