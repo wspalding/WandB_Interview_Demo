@@ -37,7 +37,6 @@ class WandbLogger():
         self.logs['{} architecture'.format(model.name)] = wandb.Image(save_file)
 
     def log_disc_gradients(self, disc_grad):
-        self.logs['disc_gradients'] = wandb.Histogram(np.array(disc_grad, dtype=float))
-
+        pass
     def log_gen_gradients(self, gen_grad):
         pass
