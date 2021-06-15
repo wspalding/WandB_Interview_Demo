@@ -185,13 +185,12 @@ def train(config=None):
         for i, image_batch in enumerate(dataset):
             print('{}/{}'.format(i+1, len(dataset)), end='\r')
             metrics = train_step(image_batch)
-        wandb_logger.sample_images(generator, [sample_noise, sample_types], samples)
+        wandb_logger .sample_images(generator, [sample_noise, sample_types], samples)
         wandb_logger.push_logs()
 
         start = time.time()
         gen_loss = 0
         disc_loss = 0
-        disc_grad = tf.zeros((28*28*1,))
         logs = {}
 
         if config.training_loop == 'simultaneous':
