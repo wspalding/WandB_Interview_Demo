@@ -2,10 +2,11 @@ import wandb
 from train_tf import train
 
 sweep_config = {
-    'method': 'grid', #grid, random, bayes
+    'method': 'bayes', #grid, random, bayes
     'metric': {
-      'name': 'gen_loss',
-      'goal': 'minimize'   
+      'name': 'disc_acc',
+      'goal': 'minimize',
+      'target': 0.5
     },
     'parameters': {
             'image_shape': {
@@ -17,21 +18,24 @@ sweep_config = {
             'num_samples': {
                 'value': 20
             },
+            # 'grid_count': {
+            #     'values': [1, 2]
+            # },
             'training_loop': {
-                # 'value': 'simultaneous'
-                'values': ['simultaneous', 'batch_split', 'full_split']
+                'value': 'simultaneous'
+                # 'values': ['simultaneous', 'batch_split', 'full_split']
             },
             'generator_seed_dim': {
-                'value': 50
-                # 'distribution': 'int_uniform',
-                # 'min': 10,
-                # 'max': 50
+                # 'value': 50
+                'distribution': 'int_uniform',
+                'min': 25,
+                'max': 50
             },
             'adversarial_epochs': {
-                'value': 50
-                # 'distribution': 'int_uniform',
-                # 'min': 50,
-                # 'max': 100
+                # 'value': 50
+                'distribution': 'int_uniform',
+                'min': 50,
+                'max': 100
             },
             'discriminator_examples': {
                 'value': 60000
@@ -46,31 +50,36 @@ sweep_config = {
                 'value': 1
             },
             'batch_size': {
-                'value': 128
-                # 'values': [32, 64, 128]
+                # 'value': 128
+                'values': [32, 64, 128]
             },
             'generator_learning_rate': {
-                'value': 1e-4
-                # 'distribution': 'log_uniform',
-                # 'min': -10,
-                # 'max': -9
+                # 'value': 1e-4
+                'distribution': 'log_uniform',
+                'min': -10,
+                'max': -9
             },
             'discriminator_learning_rate': {
-                'value': 1e-4
-                # 'distribution': 'log_uniform',
-                # 'min': -10,
-                # 'max': -9
+                # 'value': 1e-4
+                'distribution': 'log_uniform',
+                'min': -10,
+                'max': -9
             },
             'generator_learning_rate_decay': {
-                'value': 0.9
-                # 'min': 0.9,
-                # 'max': 1
+                # 'value': 0.9
+                'min': 0.9,
+                'max': 1
             },
             'discriminator_learning_rate_decay': {
-                'value': 0.9
-                # 'min': 0.9,
-                # 'max': 1
+                # 'value': 0.9
+                'min': 0.9,
+                'max': 1
             },
+            'discriminator_dropout_rate': {
+                # value: 0.3
+                'min': 0.2,
+                'max': 0.4
+            }
     },
     'early_terminate': {
         'type': 'hyperband',
@@ -78,12 +87,13 @@ sweep_config = {
         'eta': 3,
         'max_iter': 27
     }
+
 }
 
 
 
 if(__name__ == '__main__'):
     sweep_id = wandb.sweep(sweep_config, 
-                            project="")
+                            project="WandB_Interview_Demo")
 
     wandb.agent(sweep_id, train)

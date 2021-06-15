@@ -34,36 +34,33 @@ def train_discriminator(generator, discriminator, x_train, y_train, x_test, y_te
     test, test_labels = mix_data(x_test, y_test, generator, length=x_test.shape[0], seed_dim=config.generator_seed_dim)
 
     discriminator.trainable = True
-    # discriminator.summary()
-
     wandb_logging_callback = LambdaCallback(on_epoch_end=logger.log_discriminator)
+    wanb_keras_callback = WandbCallback()
+    wanb_keras_callback.set_model(discriminator)
 
     history = discriminator.fit(train, train_labels,
         epochs=config.discriminator_epochs,
         batch_size=config.batch_size, validation_data=(test, test_labels),
-        callbacks = [wandb_logging_callback])
+        callbacks = [wandb_logging_callback, wanb_keras_callback])
+        # WandbCallback(log_gradients=True, log_weights=True, training_data=(train,train_labels))
 
     discriminator.save(os.path.join(wandb.run.dir, "discriminator.h5"))
 
 
 def train_generator(generator, discriminator, joint_model, config, logger):
     num_examples = config.generator_examples
-
     train = generator_inputs(num_examples, config)
-    # labels = to_categorical(np.ones(num_examples))
     labels = np.ones(num_examples)
 
-    # add_noise(labels)
-
     wandb_logging_callback = LambdaCallback(on_epoch_end=logger.log_generator)
-
     discriminator.trainable = False
-
-    # joint_model.summary()
-
+    wanb_keras_callback = WandbCallback()
+    wanb_keras_callback.set_model(generator)
+    
     joint_model.fit(train, labels, epochs=config.generator_epochs,
             batch_size=config.batch_size,
-            callbacks=[wandb_logging_callback])
+            callbacks=[wandb_logging_callback, wanb_keras_callback])
+            # WandbCallback(log_gradients=True, log_weights=True, training_data=(train,labels))
 
     generator.save(os.path.join(wandb.run.dir, "generator.h5"))
 

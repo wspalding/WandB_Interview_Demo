@@ -26,9 +26,10 @@ class WandbLogger():
 
     def sample_images(self, generator, noise, samples):
         gen_imgs = generator.predict(noise)
+        self.logs['examples'] = [wandb.Image(np.squeeze(i)) for i in gen_imgs]
+
         for i, s in enumerate(samples):
             s.append(np.reshape(gen_imgs[i], [1, 28, 28]) * 255.0)
-        self.logs['examples'] = [wandb.Image(np.squeeze(i)) for i in gen_imgs]
         self.logs['progession'] = [wandb.Video(np.array(s)) for s in samples]
 
     def log_model_images(self, model):
@@ -36,7 +37,3 @@ class WandbLogger():
         plot_model(model, to_file=save_file)
         self.logs['{} architecture'.format(model.name)] = wandb.Image(save_file)
 
-    def log_disc_gradients(self, disc_grad):
-        pass
-    def log_gen_gradients(self, gen_grad):
-        pass

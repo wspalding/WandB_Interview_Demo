@@ -70,7 +70,7 @@ if __name__ == '__main__':
         'discriminator_examples': 60000,
         'generator_examples': 60000,
         'generator_epochs': 1,
-        'discriminator_epochs': 2,
+        'discriminator_epochs': 1,
         'batch_size': 128,
         'generator_learning_rate': 1e-4,
         'discriminator_learning_rate': 1e-4,

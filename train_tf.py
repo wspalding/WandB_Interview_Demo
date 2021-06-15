@@ -182,7 +182,12 @@ def train(config=None):
         print('=====================================================================')
         print('Adversarian Epoch: {}/{}'.format(epoch+1, config.adversarial_epochs))
         print('=====================================================================')
-        
+        for i, image_batch in enumerate(dataset):
+            print('{}/{}'.format(i+1, len(dataset)), end='\r')
+            metrics = train_step(image_batch)
+        wandb_logger.sample_images(generator, [sample_noise, sample_types], samples)
+        wandb_logger.push_logs()
+
         start = time.time()
         gen_loss = 0
         disc_loss = 0
@@ -275,5 +280,4 @@ if __name__ == '__main__':
         'generator_learning_rate_decay': 0.9,
         'discriminator_learning_rate_decay': 0.9
     }
-    train_dataset = tf.data.Dataset.from_tensor_slices(x_train).shuffle(config['num_examples']).batch(config['batch_size'])
     train(config=config)
